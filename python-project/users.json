@@ -1,0 +1,3 @@
+{"GOPI": {"password": "123", "scores": [{"topic": "MATH", "score": 2}, 
+{"topic": "Science", "score": 9}]},
+ "sunil": {"password": "1234", "scores": [{"topic": "Business", "score": 1}, {"topic": "General Knowledge", "score": 6}]}}
