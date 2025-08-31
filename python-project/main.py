@@ -105,8 +105,7 @@ class QuizGame:
 
         self.player_name = username
         self.show_start_screen()
-
-    # ------------------ Quiz Screens ------------------
+        
     def show_start_screen(self):
         self.clear_screen()
         frame = tk.Frame(self.root)
@@ -127,14 +126,20 @@ class QuizGame:
         tk.Button(frame, text="Logout", command=self.show_login_screen,
                   font=("Arial", 12, "bold"),
                   bg="red", fg="white", width=12).pack(pady=10)
-
     def start_quiz(self):
         self.topic = self.topic_var.get()
-        self.questions = quiz_data[self.topic]
+    
+
+        all_questions = quiz_data[self.topic]
+    
+  
+        num_questions = min(5, len(all_questions))
+        self.questions = random.sample(all_questions, num_questions)
+    
         self.current_q = 0
         self.score = 0
         self.show_question()
-
+        
     def show_question(self):
         self.clear_screen()
         q_data = self.questions[self.current_q]
@@ -238,3 +243,4 @@ if __name__ == "__main__":
     root = tk.Tk()
     QuizGame(root)
     root.mainloop()
+
