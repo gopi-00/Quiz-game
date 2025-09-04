@@ -1,111 +1,66 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
 from quiz_data import quiz_data
-import json 
+import random
+import json
 
 
 class QuizGame:
     def __init__(self, root):
         self.root = root
-        self.root.title("Colorful Quiz Game")
+        self.root.title("Quiz Game with Score History")
         self.root.geometry("800x600")
 
-        # Quiz attributes
         self.player_name = ""
         self.topic = ""
         self.questions = []
         self.current_q = 0
         self.score = 0
 
-        # User data file
-        self.users_file = "users.json"
+
+        self.scores_file = "scores.json"
         try:
-            with open(self.users_file, "r") as f:
-                self.users = json.load(f)
+            with open(self.scores_file, "r") as f:
+                self.scores = json.load(f)
         except:
-            self.users = {}
+            self.scores = {}
 
-        # Start with login screen
-        self.show_login_screen()
+        self.show_name_screen()
 
-    # ------------------ Utility ------------------
     def clear_screen(self):
         for widget in self.root.winfo_children():
             widget.destroy()
 
-    # ------------------ Login/Register ------------------
-    def show_login_screen(self):
+    # --- Step 1: Enter Name Screen ---
+    def show_name_screen(self):
         self.clear_screen()
         frame = tk.Frame(self.root)
         frame.pack(expand=True)
 
-        tk.Label(frame, text="🔐 Quiz Game Login",
+        tk.Label(frame, text="🎮 Welcome to the Quiz Game 🎮",
                  font=("Arial", 24, "bold"), fg="darkblue").pack(pady=20)
 
-        tk.Label(frame, text="Username:", font=("Arial", 12)).pack()
-        self.username_entry = tk.Entry(frame, font=("Arial", 12))
-        self.username_entry.pack(pady=5)
+        tk.Label(frame, text="Enter your name:", font=("Arial", 12)).pack()
+        self.name_entry = tk.Entry(frame, font=("Arial", 12))
+        self.name_entry.pack(pady=10)
 
-        tk.Label(frame, text="Password:", font=("Arial", 12)).pack()
-        self.password_entry = tk.Entry(frame, font=("Arial", 12), show="*")
-        self.password_entry.pack(pady=5)
+        tk.Button(frame, text="Continue", command=self.set_player_name,
+                  font=("Arial", 12, "bold"), bg="green", fg="white", width=12).pack(pady=20)
 
-        tk.Button(frame, text="Login", command=self.login,
-                  font=("Arial", 12, "bold"), bg="green", fg="white", width=12).pack(pady=10)
-        tk.Button(frame, text="Register", command=self.show_register_screen,
-                  font=("Arial", 12, "bold"), bg="blue", fg="white", width=12).pack(pady=5)
-
-    def show_register_screen(self):
-        self.clear_screen()
-        frame = tk.Frame(self.root)
-        frame.pack(expand=True)
-
-        tk.Label(frame, text="📝 Register New Player",
-                 font=("Arial", 24, "bold"), fg="purple").pack(pady=20)
-
-        tk.Label(frame, text="Choose Username:", font=("Arial", 12)).pack()
-        self.reg_username = tk.Entry(frame, font=("Arial", 12))
-        self.reg_username.pack(pady=5)
-
-        tk.Label(frame, text="Choose Password:", font=("Arial", 12)).pack()
-        self.reg_password = tk.Entry(frame, font=("Arial", 12), show="*")
-        self.reg_password.pack(pady=5)
-
-        tk.Button(frame, text="Register", command=self.register_user,
-                  font=("Arial", 12, "bold"), bg="orange", fg="white", width=12).pack(pady=20)
-        tk.Button(frame, text="Back to Login", command=self.show_login_screen,
-                  font=("Arial", 12, "bold"), bg="gray", fg="white", width=12).pack()
-
-    def register_user(self):
-        username = self.reg_username.get().strip()
-        password = self.reg_password.get().strip()
-
-        if username in self.users:
-            messagebox.showwarning("Error", "Username already exists!")
+    def set_player_name(self):
+        name = self.name_entry.get().strip()
+        if name == "":
+            messagebox.showwarning("Error", "Please enter your name!")
             return
+        self.player_name = name
 
-        if username == "" or password == "":
-            messagebox.showwarning("Error", "Please fill all fields!")
-            return
+        # Make sure player has a history entry
+        if self.player_name not in self.scores:
+            self.scores[self.player_name] = []
 
-        self.users[username] = {"password": password, "scores": []}
-        with open(self.users_file, "w") as f:
-            json.dump(self.users, f)
-
-        messagebox.showinfo("Success", "Registration successful! Please login.")
-        self.show_login_screen()
-
-    def login(self):
-        username = self.username_entry.get().strip()
-        password = self.password_entry.get().strip()
-
-        if username not in self.users or self.users[username]["password"] != password:
-            messagebox.showerror("Login Failed", "Invalid username or password!")
-            return
-
-        self.player_name = username
         self.show_start_screen()
-        
+
+
     def show_start_screen(self):
         self.clear_screen()
         frame = tk.Frame(self.root)
@@ -123,23 +78,25 @@ class QuizGame:
                   font=("Arial", 12, "bold"),
                   bg="green", fg="white", width=12).pack(pady=20)
 
-        tk.Button(frame, text="Logout", command=self.show_login_screen,
+        tk.Button(frame, text="Change Player", command=self.show_name_screen,
+                  font=("Arial", 12, "bold"),
+                  bg="orange", fg="white", width=12).pack(pady=10)
+
+        tk.Button(frame, text="Exit", command=self.root.quit,
                   font=("Arial", 12, "bold"),
                   bg="red", fg="white", width=12).pack(pady=10)
+
     def start_quiz(self):
         self.topic = self.topic_var.get()
-    
-
         all_questions = quiz_data[self.topic]
-    
-  
+
         num_questions = min(5, len(all_questions))
         self.questions = random.sample(all_questions, num_questions)
-    
+
         self.current_q = 0
         self.score = 0
         self.show_question()
-        
+
     def show_question(self):
         self.clear_screen()
         q_data = self.questions[self.current_q]
@@ -194,15 +151,16 @@ class QuizGame:
         else:
             self.show_result()
 
+    # --- Step 4: Show Final Result + History ---
     def show_result(self):
         self.clear_screen()
 
-        # Save score for this user
-        self.users[self.player_name]["scores"].append(
+        # Save score for this player
+        self.scores[self.player_name].append(
             {"topic": self.topic, "score": self.score}
         )
-        with open(self.users_file, "w") as f:
-            json.dump(self.users, f)
+        with open(self.scores_file, "w") as f:
+            json.dump(self.scores, f)
 
         frame = tk.Frame(self.root)
         frame.pack(expand=True)
@@ -221,8 +179,8 @@ class QuizGame:
         tk.Label(frame, text="🏆 Your Past Scores 🏆",
                  font=("Arial", 14, "bold"), fg="blue").pack(pady=10)
 
-        # Display last 10 scores for this user
-        for record in reversed(self.users[self.player_name]["scores"][-10:]):
+       
+        for record in reversed(self.scores[self.player_name][-10:]):
             tk.Label(frame, text=f"{record['topic']} - {record['score']}",
                      font=("Arial", 12)).pack()
 
@@ -230,9 +188,9 @@ class QuizGame:
                   font=("Arial", 12, "bold"),
                   bg="blue", fg="white", width=12).pack(pady=10)
 
-        tk.Button(frame, text="Logout", command=self.show_login_screen,
+        tk.Button(frame, text="Change Player", command=self.show_name_screen,
                   font=("Arial", 12, "bold"),
-                  bg="gray", fg="white", width=12).pack(pady=5)
+                  bg="orange", fg="white", width=12).pack(pady=5)
 
         tk.Button(frame, text="Exit", command=self.root.quit,
                   font=("Arial", 12, "bold"),
@@ -243,4 +201,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     QuizGame(root)
     root.mainloop()
-
